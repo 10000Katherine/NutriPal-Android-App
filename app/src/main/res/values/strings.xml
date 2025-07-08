@@ -1,0 +1,61 @@
+<resources>
+    <string name="app_name">NutriPal</string>
+    <string name="app_logo">NutriPal Logo</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">首页</string>
+    <string name="nav_food_log">日志</string>
+    <string name="nav_progress">进度</string>
+    <string name="nav_profile">我的</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_welcome">欢迎使用 NutriPal</string>
+    <string name="onboarding_body_fat_title">你的体脂率水平是多少？</string>
+    <string name="onboarding_body_fat_subtitle">不用过于精确，目测即可。这将帮助我们制定更合适的营养计划。</string>
+    <string name="onboarding_experience_title">你的运动经验水平如何？</string>
+    <string name="onboarding_experience_subtitle">这将帮助我们推荐合适的营养目标和运动计划</string>
+
+    <!-- Experience Levels -->
+    <string name="experience_none">无经验</string>
+    <string name="experience_none_desc">目前没有固定的运动习惯</string>
+    <string name="experience_beginner">初学者</string>
+    <string name="experience_beginner_desc">运动不到一年时间</string>
+    <string name="experience_intermediate">中级水平</string>
+    <string name="experience_intermediate_desc">运动超过一年，但不到四年</string>
+    <string name="experience_advanced">高级水平</string>
+    <string name="experience_advanced_desc">运动四年以上，经验丰富</string>
+
+    <!-- Buttons -->
+    <string name="button_next">下一步</string>
+    <string name="button_skip">跳过</string>
+    <string name="button_start">开始使用</string>
+    <string name="button_continue">继续</string>
+    <string name="button_add">添加</string>
+
+    <!-- Food Categories -->
+    <string name="meal_breakfast">早餐</string>
+    <string name="meal_lunch">午餐</string>
+    <string name="meal_dinner">晚餐</string>
+    <string name="meal_snack">零食</string>
+
+    <!-- Nutrition -->
+    <string name="nutrition_protein">蛋白质</string>
+    <string name="nutrition_carbs">碳水化合物</string>
+    <string name="nutrition_fat">脂肪</string>
+    <string name="nutrition_fiber">膳食纤维</string>
+    <string name="nutrition_sodium">钠</string>
+    <string name="nutrition_calories">卡路里</string>
+
+    <!-- Units -->
+    <string name="unit_grams">g</string>
+    <string name="unit_calories">kcal</string>
+    <string name="unit_milligrams">mg</string>
+    <string name="unit_liters">L</string>
+
+    <!-- Messages -->
+    <string name="calories_remaining">还可以摄入 %d 卡路里</string>
+    <string name="daily_goal_reached">今日目标已达成！</string>
+    <string name="loading">加载中...</string>
+    <string name="error_network">网络连接错误</string>
+    <string name="error_general">发生错误，请重试</string>
+</resources>

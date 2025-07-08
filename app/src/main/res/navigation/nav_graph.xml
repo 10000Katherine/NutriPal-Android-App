@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/nav_home">
+
+    <fragment
+        android:id="@+id/nav_home"
+        android:name="com.nutripal.fragments.HomeFragment"
+        android:label="NutriPal"
+        tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/nav_food_log"
+        android:name="com.nutripal.fragments.FoodLogFragment"
+        android:label="Food Log"
+        tools:layout="@layout/fragment_food_log" >
+        <action
+            android:id="@+id/action_foodLogFragment_to_addFoodFragment"
+            app:destination="@id/addFoodFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_progress"
+        android:name="com.nutripal.fragments.ProgressFragment"
+        android:label="Progress"
+        tools:layout="@layout/fragment_progress" />
+
+    <fragment
+        android:id="@+id/nav_profile"
+        android:name="com.nutripal.fragments.ProfileFragment"
+        android:label="Profile"
+        tools:layout="@layout/fragment_profile" />
+
+    <fragment
+        android:id="@+id/addFoodFragment"
+        android:name="com.nutripal.fragments.AddFoodFragment"
+        android:label="Add Food"
+        tools:layout="@layout/fragment_add_food" />
+
+</navigation>
