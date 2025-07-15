@@ -1,5 +1,6 @@
 package com.nutripal.adapters;
 
+import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,7 @@ import com.nutripal.R;
 import com.nutripal.models.FoodLog;
 import com.nutripal.models.LogItem;
 import com.nutripal.models.MealHeader;
+import com.nutripal.utils.NutritionQualityScorer; // 导入评分工具
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,13 +27,13 @@ public class FoodLogAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private static final int VIEW_TYPE_ITEM = 1;
 
     private List<LogItem> items = new ArrayList<>();
-    private OnFoodLogItemLongClickListener longClickListener; //
+    private OnFoodLogItemLongClickListener longClickListener;
 
     public void setOnFoodLogItemLongClickListener(OnFoodLogItemLongClickListener listener) {
         this.longClickListener = listener;
     }
 
-
+    // HeaderViewHolder 保持不变
     public static class HeaderViewHolder extends RecyclerView.ViewHolder {
         TextView mealTypeTextView;
         TextView totalCaloriesTextView;
@@ -48,19 +50,38 @@ public class FoodLogAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
     }
 
+    // --- FoodLogViewHolder 修改 ---
     public static class FoodLogViewHolder extends RecyclerView.ViewHolder {
         TextView foodNameTextView;
         TextView caloriesTextView;
+        TextView nutritionScoreTextView;
 
         public FoodLogViewHolder(@NonNull View itemView) {
             super(itemView);
             foodNameTextView = itemView.findViewById(R.id.textView_log_food_name);
             caloriesTextView = itemView.findViewById(R.id.textView_log_calories);
+            nutritionScoreTextView = itemView.findViewById(R.id.textView_log_nutrition_score);
         }
 
         public void bind(FoodLog foodLog) {
             foodNameTextView.setText(foodLog.getFoodName());
+            // This still shows the calories for the portion eaten, which is correct
             caloriesTextView.setText(String.format("%.0f kcal", foodLog.getCalories()));
+
+            // --- THE BUG FIX ---
+            // Use the standard caloriesPer100g to calculate the score
+            double caloriesForScore = foodLog.getCaloriesPer100g();
+
+            if (caloriesForScore > 0) {
+                NutritionQualityScorer.Score score = NutritionQualityScorer.getScore(caloriesForScore);
+                nutritionScoreTextView.setText(score.getGrade());
+
+                GradientDrawable scoreBackground = (GradientDrawable) nutritionScoreTextView.getBackground();
+                scoreBackground.setColor(score.getParsedColor());
+                nutritionScoreTextView.setVisibility(View.VISIBLE);
+            } else {
+                nutritionScoreTextView.setVisibility(View.GONE);
+            }
         }
     }
 

@@ -95,6 +95,11 @@ public class FoodLogFragment extends Fragment implements FoodLogAdapter.OnFoodLo
             newLog.setQuantity(bundle.getDouble("quantity"));
             newLog.setMealType(bundle.getString("mealType"));
             newLog.setDate(bundle.getLong("date", System.currentTimeMillis()));
+
+            // --- FINAL ADDITION HERE ---
+            // Get the standard 100g calories from the bundle and save it
+            newLog.setCaloriesPer100g(bundle.getDouble("caloriesPer100g"));
+
             viewModel.insert(newLog);
         });
     }

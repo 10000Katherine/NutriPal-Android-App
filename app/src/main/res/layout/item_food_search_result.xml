@@ -1,44 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="16dp"
-    android:gravity="center_vertical">
+    android:padding="8dp">
 
-    <!-- 用于显示食物图片的 ImageView -->
     <ImageView
         android:id="@+id/imageView_food"
         android:layout_width="60dp"
         android:layout_height="60dp"
-        android:layout_marginEnd="16dp"
-        android:scaleType="centerCrop"/>
+        android:scaleType="centerCrop"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:src="@mipmap/ic_launcher" />
 
-    <!-- 一个垂直的 LinearLayout，用来上下排列名字和卡路里 -->
-    <LinearLayout
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/textView_nutrition_score"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/score_circle_background"
+        android:gravity="center"
+        android:textColor="@android:color/white"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="A" />
+
+    <TextView
+        android:id="@+id/textView_food_name"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="8dp"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:maxLines="1"
+        android:ellipsize="end"
+        app:layout_constraintEnd_toStartOf="@id/textView_nutrition_score"
+        app:layout_constraintStart_toEndOf="@id/imageView_food"
+        app:layout_constraintTop_toTopOf="@id/imageView_food"
+        tools:text="Product Name" />
 
-        <!-- 用于显示食物名字的 TextView -->
-        <TextView
-            android:id="@+id/textView_food_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Food Name"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="?android:attr/textColorPrimary"/>
+    <TextView
+        android:id="@+id/textView_food_calories"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="@id/textView_food_name"
+        app:layout_constraintTop_toBottomOf="@id/textView_food_name"
+        app:layout_constraintEnd_toEndOf="@id/textView_food_name"
+        tools:text="150.0 kcal per 100g" />
 
-        <!-- 用于显示卡路里的 TextView -->
-        <TextView
-            android:id="@+id/textView_food_calories"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="123 kcal per 100g"
-            android:textSize="14sp"
-            android:textColor="?android:attr/textColorSecondary"/>
-    </LinearLayout>
-
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

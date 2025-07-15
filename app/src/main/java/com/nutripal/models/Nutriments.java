@@ -1,8 +1,9 @@
 package com.nutripal.models;
 
 import com.google.gson.annotations.SerializedName;
+import java.io.Serializable;
 
-public class Nutriments {
+public class Nutriments implements Serializable{
 
     @SerializedName("energy-kcal_100g")
     private double caloriesPer100g;

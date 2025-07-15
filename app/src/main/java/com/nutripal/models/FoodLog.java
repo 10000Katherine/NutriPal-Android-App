@@ -10,13 +10,16 @@ public class FoodLog implements LogItem {
     private int id;
 
     private String foodName;
-    private double calories;
-    private double protein; // <-- 添加这个字段
-    private double carbs;   // <-- 添加这个字段
-    private double fat;     // <-- 添加这个字段
+    private double calories; // 实际摄入热量
+    private double protein;
+    private double carbs;
+    private double fat;
     private double quantity;
     private String mealType;
     private long date;
+
+    // --- ↓↓↓ 在这里添加新字段 ↓↓↓ ---
+    private double caloriesPer100g; // 食物本身每100g的标准热量
 
     public FoodLog() {}
 
@@ -46,8 +49,6 @@ public class FoodLog implements LogItem {
         this.calories = calories;
     }
 
-    // ↓↓↓ 添加这些缺失的 Getters 和 Setters ↓↓↓
-
     public double getProtein() {
         return protein;
     }
@@ -72,8 +73,6 @@ public class FoodLog implements LogItem {
         this.fat = fat;
     }
 
-    // --- 已有的其他 Getters and Setters ---
-
     public double getQuantity() {
         return quantity;
     }
@@ -96,5 +95,15 @@ public class FoodLog implements LogItem {
 
     public void setDate(long date) {
         this.date = date;
+    }
+
+    // --- ↓↓↓ 在这里添加新字段的 Getter 和 Setter ↓↓↓ ---
+
+    public double getCaloriesPer100g() {
+        return caloriesPer100g;
+    }
+
+    public void setCaloriesPer100g(double caloriesPer100g) {
+        this.caloriesPer100g = caloriesPer100g;
     }
 }
