@@ -58,4 +58,17 @@
     <string name="loading">加载中...</string>
     <string name="error_network">网络连接错误</string>
     <string name="error_general">发生错误，请重试</string>
+
+    <string name="profile_title">Profile Information</string>
+    <string name="profile_name">Name</string>
+    <string name="profile_age">Age</string>
+    <string name="profile_gender">Gender</string>
+    <string name="profile_height">Height (cm)</string>
+    <string name="profile_weight">Weight (kg)</string>
+    <string name="profile_save_changes">Save Changes</string>
+    <string name="profile_dietary_preferences">Dietary Preferences</string>
+    <string name="profile_vegetarian">Vegetarian</string>
+    <string name="profile_vegan">Vegan</string>
+    <string name="profile_gluten_free">Gluten-Free</string>
+    <string name="profile_dairy_free">Dairy-Free</string>
 </resources>

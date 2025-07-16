@@ -96,11 +96,29 @@ public class FoodLogFragment extends Fragment implements FoodLogAdapter.OnFoodLo
             newLog.setMealType(bundle.getString("mealType"));
             newLog.setDate(bundle.getLong("date", System.currentTimeMillis()));
 
+
             // --- FINAL ADDITION HERE ---
             // Get the standard 100g calories from the bundle and save it
             newLog.setCaloriesPer100g(bundle.getDouble("caloriesPer100g"));
 
             viewModel.insert(newLog);
+        });
+
+        viewModel.getNewAchievementUnlocked().observe(getViewLifecycleOwner(), achievementName -> {
+            if (achievementName != null && !achievementName.isEmpty()) {
+                new AlertDialog.Builder(getContext())
+                        .setTitle("Badge Unlocked!")
+                        .setMessage("Congratulations! You've earned the '" + achievementName + "' badge.")
+                        .setPositiveButton("Awesome!", (dialog, which) -> {
+                            // Call the new method to reset the event
+                            viewModel.onAchievementShown();
+                        })
+                        .setOnDismissListener(dialog -> {
+                            // Also reset if the dialog is dismissed in other ways
+                            viewModel.onAchievementShown();
+                        })
+                        .show();
+            }
         });
     }
 

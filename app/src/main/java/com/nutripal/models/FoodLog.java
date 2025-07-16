@@ -17,6 +17,7 @@ public class FoodLog implements LogItem {
     private double quantity;
     private String mealType;
     private long date;
+    private String userEmail;
 
     // --- ↓↓↓ 在这里添加新字段 ↓↓↓ ---
     private double caloriesPer100g; // 食物本身每100g的标准热量
@@ -105,5 +106,13 @@ public class FoodLog implements LogItem {
 
     public void setCaloriesPer100g(double caloriesPer100g) {
         this.caloriesPer100g = caloriesPer100g;
+    }
+
+    public String getUserEmail() {
+        return userEmail;
+    }
+
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
     }
 }

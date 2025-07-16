@@ -9,7 +9,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -21,7 +20,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.Navigation;
+import androidx.lifecycle.ViewModelProvider; // 1. Import ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -33,6 +32,8 @@ import com.nutripal.api.FoodApiService;
 import com.nutripal.api.models.FoodSearchResponse;
 import com.nutripal.api.models.ProductResponse;
 import com.nutripal.models.Food;
+import com.nutripal.utils.PreferenceManager; // 2. Import PreferenceManager
+import com.nutripal.viewmodels.ProfileViewModel; // 3. Import ProfileViewModel
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,17 +54,19 @@ public class AddFoodFragment extends Fragment implements FoodSearchAdapter.OnFoo
     private FoodSearchAdapter adapter;
     private long selectedDateTimestamp;
 
-    // Launcher for the camera permission request
+    // --- 4. Add ViewModel and PreferenceManager ---
+    private ProfileViewModel profileViewModel;
+    private PreferenceManager preferenceManager;
+
+    // ... (Launchers remain the same) ...
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
-                    launchScanner(); // Permission granted, launch scanner
+                    launchScanner();
                 } else {
                     Toast.makeText(getContext(), "Camera permission is required to scan barcodes", Toast.LENGTH_SHORT).show();
                 }
             });
-
-    // Launcher for the barcode scanner activity
     private final ActivityResultLauncher<ScanOptions> barcodeLauncher = registerForActivityResult(new ScanContract(),
             result -> {
                 if (result.getContents() != null) {
@@ -77,13 +80,14 @@ public class AddFoodFragment extends Fragment implements FoodSearchAdapter.OnFoo
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             selectedDateTimestamp = getArguments().getLong("selected_date", System.currentTimeMillis());
-        } else {
-            selectedDateTimestamp = System.currentTimeMillis();
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // --- 5. Initialize ViewModel and PreferenceManager ---
+        profileViewModel = new ViewModelProvider(requireActivity()).get(ProfileViewModel.class);
+        preferenceManager = new PreferenceManager(requireContext());
         return inflater.inflate(R.layout.fragment_add_food, container, false);
     }
 
@@ -102,6 +106,17 @@ public class AddFoodFragment extends Fragment implements FoodSearchAdapter.OnFoo
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
 
+        // --- 6. Fetch user preferences and pass them to the adapter ---
+        String loggedInUserEmail = preferenceManager.getLoggedInUserEmail();
+        if (loggedInUserEmail != null && !loggedInUserEmail.isEmpty()) {
+            profileViewModel.getUserByEmail(loggedInUserEmail).observe(getViewLifecycleOwner(), user -> {
+                if (user != null) {
+                    // This is the key connection!
+                    adapter.setUserPreferences(user);
+                }
+            });
+        }
+
         // --- Setup Retrofit/API Service ---
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://world.openfoodfacts.org/")
@@ -111,7 +126,6 @@ public class AddFoodFragment extends Fragment implements FoodSearchAdapter.OnFoo
 
         // --- Setup Listeners ---
         scanButton.setOnClickListener(v -> checkCameraPermissionAndLaunchScanner());
-
         searchEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -119,19 +133,16 @@ public class AddFoodFragment extends Fragment implements FoodSearchAdapter.OnFoo
             public void onTextChanged(CharSequence s, int start, int before, int count) {}
             @Override
             public void afterTextChanged(Editable s) {
-                String query = s.toString();
-                if (!query.trim().isEmpty()) {
-                    performSearch(query);
+                if (!s.toString().trim().isEmpty()) {
+                    performSearch(s.toString());
                 } else {
-                    if (adapter != null) {
-                        adapter.setFoods(new ArrayList<>());
-                    }
+                    adapter.setFoods(new ArrayList<>());
                 }
             }
         });
     }
 
-    // --- Barcode Scanner Logic ---
+    // ... (All other methods like checkCameraPermissionAndLaunchScanner, performSearch, etc., remain exactly the same)
     private void checkCameraPermissionAndLaunchScanner() {
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
             launchScanner();
@@ -139,7 +150,6 @@ public class AddFoodFragment extends Fragment implements FoodSearchAdapter.OnFoo
             requestPermissionLauncher.launch(Manifest.permission.CAMERA);
         }
     }
-
     private void launchScanner() {
         ScanOptions options = new ScanOptions();
         options.setDesiredBarcodeFormats(ScanOptions.ONE_D_CODE_TYPES);
@@ -147,24 +157,17 @@ public class AddFoodFragment extends Fragment implements FoodSearchAdapter.OnFoo
         options.setCameraId(0);
         options.setBeepEnabled(true);
         options.setBarcodeImageEnabled(true);
-
-        // --- Add this line to unlock the screen orientation ---
         options.setOrientationLocked(false);
-
         barcodeLauncher.launch(options);
     }
-
     private void fetchFoodByBarcode(String barcode) {
         Toast.makeText(getContext(), "Searching for barcode...", Toast.LENGTH_SHORT).show();
         apiService.getFoodByBarcode(barcode).enqueue(new Callback<ProductResponse>() {
             @Override
-            public void onResponse(Call<ProductResponse> call, Response<ProductResponse> response) {
+            public void onResponse(@NonNull Call<ProductResponse> call, @NonNull Response<ProductResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     if (response.body().getStatus() == 1 && response.body().getProduct() != null) {
-                        Food foundFood = response.body().getProduct();
-                        // Use the new BottomSheet to show the result
-                        AddFoodBottomSheet bottomSheet = AddFoodBottomSheet.newInstance(foundFood, selectedDateTimestamp);
-                        bottomSheet.show(getParentFragmentManager(), AddFoodBottomSheet.TAG);
+                        onFoodItemClicked(response.body().getProduct());
                     } else {
                         showNotFoundDialog();
                     }
@@ -172,14 +175,12 @@ public class AddFoodFragment extends Fragment implements FoodSearchAdapter.OnFoo
                     showNotFoundDialog();
                 }
             }
-
             @Override
-            public void onFailure(Call<ProductResponse> call, Throwable t) {
+            public void onFailure(@NonNull Call<ProductResponse> call, @NonNull Throwable t) {
                 Toast.makeText(getContext(), "Network Error", Toast.LENGTH_SHORT).show();
             }
         });
     }
-
     private void showNotFoundDialog() {
         new AlertDialog.Builder(getContext())
                 .setTitle("Product Not Found")
@@ -188,35 +189,26 @@ public class AddFoodFragment extends Fragment implements FoodSearchAdapter.OnFoo
                 .setNegativeButton("Cancel", null)
                 .show();
     }
-
-    // --- Text Search Logic ---
     private void performSearch(String query) {
         apiService.searchFood(query, "1").enqueue(new Callback<FoodSearchResponse>() {
             @Override
-            public void onResponse(Call<FoodSearchResponse> call, Response<FoodSearchResponse> response) {
+            public void onResponse(@NonNull Call<FoodSearchResponse> call, @NonNull Response<FoodSearchResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<Food> products = response.body().getProducts();
-                    if (products != null) {
-                        Collections.sort(products, Comparator.comparingInt(p -> p.getName() != null ? p.getName().length() : 0));
-                    }
-                    adapter.setFoods(products);
+                    adapter.setFoods(response.body().getProducts() != null ? response.body().getProducts() : new ArrayList<>());
                 }
             }
             @Override
-            public void onFailure(Call<FoodSearchResponse> call, Throwable t) {
+            public void onFailure(@NonNull Call<FoodSearchResponse> call, @NonNull Throwable t) {
                 Log.e("API_FAILURE", "API call failed.", t);
             }
         });
     }
-
-    // --- On Click from Search Results ---
     @Override
     public void onFoodItemClicked(Food food) {
         if (food.getNutriments() == null) {
             Toast.makeText(getContext(), "No nutritional data available for this item.", Toast.LENGTH_SHORT).show();
             return;
         }
-        // When clicking from a search result, we also use the BottomSheet
         AddFoodBottomSheet bottomSheet = AddFoodBottomSheet.newInstance(food, selectedDateTimestamp);
         bottomSheet.show(getParentFragmentManager(), AddFoodBottomSheet.TAG);
     }

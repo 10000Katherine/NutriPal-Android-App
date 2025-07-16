@@ -13,6 +13,8 @@ import com.nutripal.utils.PreferenceManager;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.concurrent.ExecutorService;  // 1. Import ExecutorService
+import java.util.concurrent.Executors;    // 2. Import Executors
 
 public class HomeViewModel extends AndroidViewModel {
 
@@ -22,9 +24,13 @@ public class HomeViewModel extends AndroidViewModel {
     private final LiveData<Integer> todaysWaterIntake;
     private final MediatorLiveData<HomeScreenData> homeScreenData = new MediatorLiveData<>();
 
+    // 3. Add an ExecutorService
+    private final ExecutorService executorService;
+
     public HomeViewModel(@NonNull Application application) {
         super(application);
         repository = new FoodLogRepository(application);
+        executorService = Executors.newSingleThreadExecutor(); // 4. Initialize it
         PreferenceManager preferenceManager = new PreferenceManager(application);
         String userEmail = preferenceManager.getLoggedInUserEmail();
 
@@ -56,7 +62,6 @@ public class HomeViewModel extends AndroidViewModel {
         User user = currentUser.getValue();
         List<FoodLog> logs = todaysLogs.getValue();
         Integer water = (todaysWaterIntake != null) ? todaysWaterIntake.getValue() : null;
-
         int waterConsumed = (water == null) ? 0 : water;
 
         double caloriesConsumed = logs.stream().mapToDouble(FoodLog::getCalories).sum();
@@ -81,11 +86,15 @@ public class HomeViewModel extends AndroidViewModel {
         return homeScreenData;
     }
 
+    // 5. Wrap the repository call in the executor
     public void addWater(int amountMl) {
-        WaterLog waterLog = new WaterLog();
-        waterLog.setAmountMl(amountMl);
-        waterLog.setDate(System.currentTimeMillis());
-        repository.insertWaterLog(waterLog);
+        executorService.execute(() -> {
+            WaterLog waterLog = new WaterLog();
+            waterLog.setAmountMl(amountMl);
+            waterLog.setDate(System.currentTimeMillis());
+            // This now correctly calls the repository's direct method from a background thread
+            repository.insertWaterLog(waterLog);
+        });
     }
 
     public static class HomeScreenData {

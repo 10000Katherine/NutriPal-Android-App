@@ -31,4 +31,9 @@ public interface FoodLogDao {
     @Query("SELECT * FROM food_log_table WHERE date >= :startDate ORDER BY date ASC")
     LiveData<List<FoodLog>> getLogsSince(long startDate);
 
+    @Query("SELECT COUNT(*) FROM food_log_table WHERE userEmail = :userEmail")
+    int getLogCountForUser(String userEmail);
+
+
+
 }

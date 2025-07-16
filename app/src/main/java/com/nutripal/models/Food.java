@@ -1,8 +1,9 @@
 package com.nutripal.models;
 
 import com.google.gson.annotations.SerializedName;
-
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Food implements Serializable {
 
@@ -21,19 +22,65 @@ public class Food implements Serializable {
     @SerializedName("nutriments")
     private Nutriments nutriments;
 
+    @SerializedName("labels_tags")
+    private List<String> labelsTags;
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    @SerializedName("allergens_tags")
+    private List<String> allergensTags;
 
-    public String getBrand() { return brand; }
-    public void setBrand(String brand) { this.brand = brand; }
+    // Getters and Setters
 
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public String getName() {
+        return name;
+    }
 
-    public String getBarcode() { return barcode; }
-    public void setBarcode(String barcode) { this.barcode = barcode; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public Nutriments getNutriments() { return nutriments; }
-    public void setNutriments(Nutriments nutriments) { this.nutriments = nutriments; }
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public String getBarcode() {
+        return barcode;
+    }
+
+    public void setBarcode(String barcode) {
+        this.barcode = barcode;
+    }
+
+    public Nutriments getNutriments() {
+        return nutriments;
+    }
+
+    public void setNutriments(Nutriments nutriments) {
+        this.nutriments = nutriments;
+    }
+
+    public List<String> getLabelsTags() {
+        if (labelsTags == null) {
+            return new ArrayList<>();
+        }
+        return labelsTags;
+    }
+
+    public List<String> getAllergensTags() {
+        if (allergensTags == null) {
+            return new ArrayList<>();
+        }
+        return allergensTags;
+    }
 }

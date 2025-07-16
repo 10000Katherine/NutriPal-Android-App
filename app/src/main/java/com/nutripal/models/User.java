@@ -19,6 +19,14 @@ public class User {
     private int age;
     private String activityLevel;
 
+    // --- ↓↓↓ 在这里添加新字段 ↓↓↓ ---
+    private boolean vegetarian;
+    private boolean vegan;
+    private boolean glutenFree;
+    private boolean dairyFree;
+
+    public User() {}
+
     // --- Getters and Setters for ALL fields ---
 
     @NonNull
@@ -84,5 +92,39 @@ public class User {
 
     public void setActivityLevel(String activityLevel) {
         this.activityLevel = activityLevel;
+    }
+
+    // --- ↓↓↓ 在这里添加新字段的 Getters 和 Setters ↓↓↓ ---
+
+    public boolean isVegetarian() {
+        return vegetarian;
+    }
+
+    public void setVegetarian(boolean vegetarian) {
+        this.vegetarian = vegetarian;
+    }
+
+    public boolean isVegan() {
+        return vegan;
+    }
+
+    public void setVegan(boolean vegan) {
+        this.vegan = vegan;
+    }
+
+    public boolean isGlutenFree() {
+        return glutenFree;
+    }
+
+    public void setGlutenFree(boolean glutenFree) {
+        this.glutenFree = glutenFree;
+    }
+
+    public boolean isDairyFree() {
+        return dairyFree;
+    }
+
+    public void setDairyFree(boolean dairyFree) {
+        this.dairyFree = dairyFree;
     }
 }

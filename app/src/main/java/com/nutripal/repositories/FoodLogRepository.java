@@ -3,65 +3,61 @@ package com.nutripal.repositories;
 import android.app.Application;
 import androidx.lifecycle.LiveData;
 import com.nutripal.database.AppDatabase;
+import com.nutripal.database.dao.AchievementDao;
 import com.nutripal.database.dao.FoodLogDao;
 import com.nutripal.database.dao.UserDao;
 import com.nutripal.database.dao.WaterLogDao;
+import com.nutripal.models.Achievement;
 import com.nutripal.models.FoodLog;
 import com.nutripal.models.User;
 import com.nutripal.models.WaterLog;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class FoodLogRepository {
 
     private final FoodLogDao foodLogDao;
     private final UserDao userDao;
     private final WaterLogDao waterLogDao;
-    private final ExecutorService databaseWriteExecutor = Executors.newSingleThreadExecutor();
+    private final AchievementDao achievementDao;
 
     public FoodLogRepository(Application application) {
         AppDatabase db = AppDatabase.getDatabase(application);
         foodLogDao = db.foodLogDao();
         userDao = db.userDao();
         waterLogDao = db.waterLogDao();
+        achievementDao = db.achievementDao();
     }
 
     // User Methods
     public LiveData<User> getUserByEmail(String email) {
         return userDao.findByEmail(email);
     }
+    // Make this a direct call. The ViewModel will handle the background thread.
     public void updateUser(User user) {
-        databaseWriteExecutor.execute(() -> userDao.update(user));
+        userDao.update(user);
     }
 
     // FoodLog Methods
-    public LiveData<List<FoodLog>> getLogsForDate(long startOfDay, long endOfDay) {
-        return foodLogDao.getLogsForDate(startOfDay, endOfDay);
-    }
-    public LiveData<List<FoodLog>> getAllFoodLogs() {
-        return foodLogDao.getAllFoodLogs();
-    }
     public void insert(FoodLog foodLog) {
-        databaseWriteExecutor.execute(() -> foodLogDao.insert(foodLog));
+        foodLogDao.insert(foodLog);
     }
     public void delete(FoodLog foodLog) {
-        databaseWriteExecutor.execute(() -> foodLogDao.delete(foodLog));
+        foodLogDao.delete(foodLog);
     }
-    public void update(FoodLog foodLog) {
-        databaseWriteExecutor.execute(() -> foodLogDao.update(foodLog));
+    public int getLogCountForUser(String userEmail) {
+        return foodLogDao.getLogCountForUser(userEmail);
     }
-
-    // WaterLog Methods
-    public LiveData<Integer> getTotalWaterForDate(long startOfDay, long endOfDay) {
-        return waterLogDao.getTotalWaterForDate(startOfDay, endOfDay);
-    }
-    public void insertWaterLog(WaterLog waterLog) {
-        databaseWriteExecutor.execute(() -> waterLogDao.insert(waterLog));
-    }
-
+    // Add this method back
     public LiveData<List<FoodLog>> getLogsSince(long startDate) {
         return foodLogDao.getLogsSince(startDate);
     }
 
+    // ... (other methods remain the same)
+    public LiveData<List<FoodLog>> getLogsForDate(long startOfDay, long endOfDay) { return foodLogDao.getLogsForDate(startOfDay, endOfDay); }
+    public LiveData<Integer> getTotalWaterForDate(long startOfDay, long endOfDay) { return waterLogDao.getTotalWaterForDate(startOfDay, endOfDay); }
+    public void insertWaterLog(WaterLog waterLog) {
+        waterLogDao.insert(waterLog);
+    }
+    public LiveData<List<String>> getEarnedAchievementIdsForUser(String userEmail) { return achievementDao.getEarnedAchievementIdsForUser(userEmail); }
+    public LiveData<List<Achievement>> getAchievementsByIds(List<String> ids) { return achievementDao.getAchievementsByIds(ids); }
 }
