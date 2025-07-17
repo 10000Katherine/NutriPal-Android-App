@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:paddingTop="16dp"
+    android:paddingBottom="16dp"
+    android:paddingStart="20dp"
+    android:paddingEnd="20dp"
+    android:layout_marginEnd="8dp"
+    android:background="@drawable/nutrition_item_bg">
+
+    <TextView
+        android:id="@+id/suggestion_food_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="?android:attr/textColorPrimary"
+        tools:text="Grilled Chicken" />
+
+    <TextView
+        android:id="@+id/suggestion_food_description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textSize="12sp"
+        android:textColor="?android:attr/textColorSecondary"
+        tools:text="≈ 31g Protein" />
+
+</LinearLayout>

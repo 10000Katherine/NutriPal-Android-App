@@ -24,7 +24,6 @@ import com.nutripal.viewmodels.FoodLogViewModel;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -85,38 +84,14 @@ public class FoodLogFragment extends Fragment implements FoodLogAdapter.OnFoodLo
             }
         });
 
-        getParentFragmentManager().setFragmentResultListener("add_food_request", this, (requestKey, bundle) -> {
-            FoodLog newLog = new FoodLog();
-            newLog.setFoodName(bundle.getString("foodName"));
-            newLog.setCalories(bundle.getDouble("calories"));
-            newLog.setProtein(bundle.getDouble("protein"));
-            newLog.setCarbs(bundle.getDouble("carbs"));
-            newLog.setFat(bundle.getDouble("fat"));
-            newLog.setQuantity(bundle.getDouble("quantity"));
-            newLog.setMealType(bundle.getString("mealType"));
-            newLog.setDate(bundle.getLong("date", System.currentTimeMillis()));
-
-
-            // --- FINAL ADDITION HERE ---
-            // Get the standard 100g calories from the bundle and save it
-            newLog.setCaloriesPer100g(bundle.getDouble("caloriesPer100g"));
-
-            viewModel.insert(newLog);
-        });
-
+        // This observer for the badge notification is correct.
         viewModel.getNewAchievementUnlocked().observe(getViewLifecycleOwner(), achievementName -> {
             if (achievementName != null && !achievementName.isEmpty()) {
                 new AlertDialog.Builder(getContext())
                         .setTitle("Badge Unlocked!")
                         .setMessage("Congratulations! You've earned the '" + achievementName + "' badge.")
-                        .setPositiveButton("Awesome!", (dialog, which) -> {
-                            // Call the new method to reset the event
-                            viewModel.onAchievementShown();
-                        })
-                        .setOnDismissListener(dialog -> {
-                            // Also reset if the dialog is dismissed in other ways
-                            viewModel.onAchievementShown();
-                        })
+                        .setPositiveButton("Awesome!", (dialog, which) -> viewModel.onAchievementShown())
+                        .setOnDismissListener(dialog -> viewModel.onAchievementShown())
                         .show();
             }
         });

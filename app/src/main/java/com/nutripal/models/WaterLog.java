@@ -9,8 +9,11 @@ public class WaterLog {
     @PrimaryKey(autoGenerate = true)
     private int id;
 
-    private int amountMl; // Amount in milliliters
-    private long date;   // Timestamp
+    private int amountMl;
+    private long date;
+
+    // --- Add this new field ---
+    private String userEmail;
 
     // Getters and Setters
     public int getId() { return id; }
@@ -21,4 +24,8 @@ public class WaterLog {
 
     public long getDate() { return date; }
     public void setDate(long date) { this.date = date; }
+
+    // --- Add the getter and setter for the new field ---
+    public String getUserEmail() { return userEmail; }
+    public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
 }

@@ -24,7 +24,10 @@ public interface AchievementDao {
     @Query("SELECT COUNT(*) FROM user_achievement_table WHERE userEmail = :userEmail AND achievementId = :achievementId")
     int hasUserEarnedAchievement(String userEmail, String achievementId);
 
-    // --- Add this new method ---
     @Query("SELECT * FROM achievement_table WHERE id IN (:ids)")
     LiveData<List<Achievement>> getAchievementsByIds(List<String> ids);
+
+    // --- ↓↓↓ 添加这个新方法 ↓↓↓ ---
+    @Query("SELECT * FROM achievement_table ORDER BY name ASC")
+    LiveData<List<Achievement>> getAllAchievements();
 }

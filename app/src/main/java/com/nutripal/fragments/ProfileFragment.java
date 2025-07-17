@@ -58,10 +58,9 @@ public class ProfileFragment extends Fragment {
         switchGlutenFree = view.findViewById(R.id.switch_gluten_free);
         switchDairyFree = view.findViewById(R.id.switch_dairy_free);
 
-        // --- 4. Setup the new RecyclerView ---
+        // --- Setup the RecyclerView ---
         achievementsRecyclerView = view.findViewById(R.id.recyclerView_achievements);
         achievementAdapter = new AchievementAdapter();
-        // Use a horizontal layout manager to make the list scroll sideways
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
         achievementsRecyclerView.setLayoutManager(layoutManager);
         achievementsRecyclerView.setAdapter(achievementAdapter);
@@ -79,17 +78,18 @@ public class ProfileFragment extends Fragment {
                 }
             });
 
-            // --- 5. Observe achievements data from the ViewModel ---
-            // NOTE: We will need to create getAchievementsForUser in the ViewModel next
-            viewModel.getAchievementsForUser(loggedInUserEmail).observe(getViewLifecycleOwner(), achievements -> {
-                if (achievements != null) {
-                    achievementAdapter.setAchievements(achievements);
+            // Observe achievements data from the ViewModel
+            viewModel.getAchievementsForUser(loggedInUserEmail).observe(getViewLifecycleOwner(), earnedAchievements -> {
+                if (earnedAchievements != null) {
+                    // This now calls the correct method for showing only earned badges
+                    achievementAdapter.setDisplayModeEarnedOnly(earnedAchievements);
                 }
             });
         }
 
         btnSave.setOnClickListener(v -> saveProfileChanges());
     }
+
 
     private void populateUI(User user) {
         // ... (this method remains the same)

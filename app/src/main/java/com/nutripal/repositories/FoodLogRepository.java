@@ -60,4 +60,8 @@ public class FoodLogRepository {
     }
     public LiveData<List<String>> getEarnedAchievementIdsForUser(String userEmail) { return achievementDao.getEarnedAchievementIdsForUser(userEmail); }
     public LiveData<List<Achievement>> getAchievementsByIds(List<String> ids) { return achievementDao.getAchievementsByIds(ids); }
+
+    public LiveData<List<Achievement>> getAllAchievements() {
+        return achievementDao.getAllAchievements();
+    }
 }

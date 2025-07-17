@@ -39,7 +39,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:text="1,456"
+                    android:text="0"
                     android:textSize="32sp"
                     android:textColor="@color/primary_green"
                     android:textStyle="bold"
@@ -50,12 +50,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:text="544 kcal remaining"
+                    android:text="kcal remaining"
                     android:textSize="16sp"
                     android:textColor="@color/text_secondary" />
-
             </LinearLayout>
-
         </androidx.cardview.widget.CardView>
 
         <androidx.cardview.widget.CardView
@@ -106,7 +104,7 @@
                             android:id="@+id/protein_value_text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="105g"
+                            android:text="0g"
                             android:textSize="18sp"
                             android:textStyle="bold"
                             android:textColor="@color/text_primary"
@@ -124,7 +122,6 @@
                             android:id="@+id/protein_progress_view"
                             android:layout_width="match_parent"
                             android:layout_height="4dp" />
-
                     </LinearLayout>
 
                     <LinearLayout
@@ -136,7 +133,7 @@
                         android:padding="12dp"
                         android:layout_marginStart="8dp"
                         android:layout_marginEnd="8dp"
-                        android:background="@drawable/nutrition_item_bg">
+                        android.background="@drawable/nutrition_item_bg">
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -149,7 +146,7 @@
                             android:id="@+id/carbs_value_text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="180g"
+                            android:text="0g"
                             android:textSize="18sp"
                             android:textStyle="bold"
                             android:textColor="@color/text_primary"
@@ -167,7 +164,6 @@
                             android:id="@+id/carbs_progress_view"
                             android:layout_width="match_parent"
                             android:layout_height="4dp" />
-
                     </LinearLayout>
 
                     <LinearLayout
@@ -177,7 +173,7 @@
                         android:orientation="vertical"
                         android:gravity="center"
                         android:padding="12dp"
-                        android:background="@drawable/nutrition_item_bg">
+                        android.background="@drawable/nutrition_item_bg">
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -190,7 +186,7 @@
                             android:id="@+id/fat_value_text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="54g"
+                            android:text="0g"
                             android:textSize="18sp"
                             android:textStyle="bold"
                             android:textColor="@color/text_primary"
@@ -208,9 +204,38 @@
                             android:id="@+id/fat_progress_view"
                             android:layout_width="match_parent"
                             android:layout_height="4dp" />
-
                     </LinearLayout>
                 </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/suggestion_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+                <TextView
+                    android:id="@+id/suggestion_title_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="💡 Need more protein?"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginBottom="12dp" />
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/suggestion_recycler_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
@@ -220,27 +245,23 @@
             app:cardCornerRadius="16dp"
             app:cardElevation="4dp"
             app:cardBackgroundColor="@color/light_blue">
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="20dp">
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
                     android:layout_marginBottom="16dp">
-
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="💧"
                         android:textSize="24sp"
                         android:layout_marginEnd="12dp" />
-
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -249,28 +270,25 @@
                         android:textStyle="bold"
                         android:textColor="@color/primary_blue" />
                 </LinearLayout>
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical">
-
                     <ProgressBar
                         android:id="@+id/hydration_progress_bar"
                         android:layout_width="0dp"
                         android:layout_height="8dp"
                         android:layout_weight="1"
                         style="?android:attr/progressBarStyleHorizontal"
-                        android:progress="75"
+                        android:progress="0"
                         android:progressDrawable="@drawable/hydration_progress"
                         android:layout_marginEnd="12dp" />
-
                     <TextView
                         android:id="@+id/hydration_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="1.5L / 2L"
+                        android:text="0 / 2000 ml"
                         android:textSize="14sp"
                         android:textStyle="bold"
                         android:textColor="@color/primary_blue" />
