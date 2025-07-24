@@ -144,5 +144,14 @@
             android:text="Save Changes"
             android:padding="12dp"/>
 
+        <Button
+            android:id="@+id/button_export_data"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Export My Data"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_marginTop="16dp" />
+
+
     </LinearLayout>
 </ScrollView>

@@ -1,5 +1,7 @@
 package com.nutripal.fragments;
 
+import android.content.DialogInterface;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,16 +9,21 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager; // 1. Import RecyclerView components
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.nutripal.R;
-import com.nutripal.adapters.AchievementAdapter; // 2. Import your new adapter
+import com.nutripal.adapters.AchievementAdapter;
 import com.nutripal.models.User;
 import com.nutripal.utils.PreferenceManager;
 import com.nutripal.viewmodels.ProfileViewModel;
@@ -26,14 +33,28 @@ public class ProfileFragment extends Fragment {
     private ProfileViewModel viewModel;
     private PreferenceManager preferenceManager;
     private EditText etName, etAge, etGender, etHeight, etWeight;
-    private Button btnSave;
+    private Button btnSave, btnExport; // 1. Add export button variable
     private LiveData<User> userLiveData;
     private User currentUser;
     private SwitchMaterial switchVegetarian, switchVegan, switchGlutenFree, switchDairyFree;
-
-    // --- 3. Add variables for the new RecyclerView and its adapter ---
     private RecyclerView achievementsRecyclerView;
     private AchievementAdapter achievementAdapter;
+
+    // --- 2. Add a launcher to handle the file creation intent ---
+    private final ActivityResultLauncher<String> createFileLauncher = registerForActivityResult(
+            new ActivityResultContracts.CreateDocument("text/csv"),
+            uri -> {
+                if (uri != null) {
+                    // When user selects a location and file name, the URI is returned.
+                    // We then tell the ViewModel to write the data to this URI.
+                    viewModel.writeDataToUri(uri);
+                    Toast.makeText(getContext(), "Exporting data...", Toast.LENGTH_LONG).show();
+                } else {
+                    // User cancelled the save dialog
+                    Toast.makeText(getContext(), "Export cancelled.", Toast.LENGTH_SHORT).show();
+                }
+            });
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -46,30 +67,11 @@ public class ProfileFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // --- Find existing views ---
-        etName = view.findViewById(R.id.editText_profile_name);
-        etAge = view.findViewById(R.id.editText_profile_age);
-        etGender = view.findViewById(R.id.editText_profile_gender);
-        etHeight = view.findViewById(R.id.editText_profile_height);
-        etWeight = view.findViewById(R.id.editText_profile_weight);
-        btnSave = view.findViewById(R.id.button_save_profile);
-        switchVegetarian = view.findViewById(R.id.switch_vegetarian);
-        switchVegan = view.findViewById(R.id.switch_vegan);
-        switchGlutenFree = view.findViewById(R.id.switch_gluten_free);
-        switchDairyFree = view.findViewById(R.id.switch_dairy_free);
-
-        // --- Setup the RecyclerView ---
-        achievementsRecyclerView = view.findViewById(R.id.recyclerView_achievements);
-        achievementAdapter = new AchievementAdapter();
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
-        achievementsRecyclerView.setLayoutManager(layoutManager);
-        achievementsRecyclerView.setAdapter(achievementAdapter);
-
+        initViews(view); // Using a helper method to initialize views
 
         String loggedInUserEmail = preferenceManager.getLoggedInUserEmail();
 
         if (loggedInUserEmail != null && !loggedInUserEmail.isEmpty()) {
-            // Observe user data to populate fields
             userLiveData = viewModel.getUserByEmail(loggedInUserEmail);
             userLiveData.observe(getViewLifecycleOwner(), user -> {
                 if (user != null) {
@@ -78,48 +80,64 @@ public class ProfileFragment extends Fragment {
                 }
             });
 
-            // Observe achievements data from the ViewModel
             viewModel.getAchievementsForUser(loggedInUserEmail).observe(getViewLifecycleOwner(), earnedAchievements -> {
                 if (earnedAchievements != null) {
-                    // This now calls the correct method for showing only earned badges
                     achievementAdapter.setDisplayModeEarnedOnly(earnedAchievements);
                 }
             });
         }
 
+        // --- 4. Add a new observer to trigger the file save dialog ---
+        viewModel.getCsvContent().observe(getViewLifecycleOwner(), content -> {
+            // This is triggered after the ViewModel has prepared the CSV data
+            if (content != null && !content.isEmpty()) {
+                // Now that we have the content, launch the file saver
+                String fileName = "NutriPal_Export_" + System.currentTimeMillis() + ".csv";
+                createFileLauncher.launch(fileName);
+                viewModel.onCsvDataReady(); // Reset the event
+            }
+        });
+
         btnSave.setOnClickListener(v -> saveProfileChanges());
+        btnExport.setOnClickListener(v -> showDateRangeDialog()); // Set listener for new button
     }
 
+    private void initViews(View view) {
+        etName = view.findViewById(R.id.editText_profile_name);
+        etAge = view.findViewById(R.id.editText_profile_age);
+        // ... (all your other findViewById calls)
+        etGender = view.findViewById(R.id.editText_profile_gender);
+        etHeight = view.findViewById(R.id.editText_profile_height);
+        etWeight = view.findViewById(R.id.editText_profile_weight);
+        btnSave = view.findViewById(R.id.button_save_profile);
+        switchVegetarian = view.findViewById(R.id.switch_vegetarian);
+        switchVegan = view.findViewById(R.id.switch_vegan);
+        switchGlutenFree = view.findViewById(R.id.switch_gluten_free);
+        switchDairyFree = view.findViewById(R.id.switch_dairy_free);
+        achievementsRecyclerView = view.findViewById(R.id.recyclerView_achievements);
+        achievementAdapter = new AchievementAdapter();
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
+        achievementsRecyclerView.setLayoutManager(layoutManager);
+        achievementsRecyclerView.setAdapter(achievementAdapter);
 
-    private void populateUI(User user) {
-        // ... (this method remains the same)
-        etName.setText(user.getName());
-        etAge.setText(String.valueOf(user.getAge()));
-        etGender.setText(user.getGender());
-        etHeight.setText(String.valueOf(user.getHeight()));
-        etWeight.setText(String.valueOf(user.getWeight()));
-        switchVegetarian.setChecked(user.isVegetarian());
-        switchVegan.setChecked(user.isVegan());
-        switchGlutenFree.setChecked(user.isGlutenFree());
-        switchDairyFree.setChecked(user.isDairyFree());
+        // Find the new export button
+        btnExport = view.findViewById(R.id.button_export_data);
     }
 
-    private void saveProfileChanges() {
-        // ... (this method remains the same)
-        if (currentUser == null) {
-            Toast.makeText(getContext(), "Cannot save, user data not loaded.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        currentUser.setName(etName.getText().toString().trim());
-        currentUser.setAge(Integer.parseInt(etAge.getText().toString().trim()));
-        currentUser.setGender(etGender.getText().toString().trim());
-        currentUser.setHeight(Double.parseDouble(etHeight.getText().toString().trim()));
-        currentUser.setWeight(Double.parseDouble(etWeight.getText().toString().trim()));
-        currentUser.setVegetarian(switchVegetarian.isChecked());
-        currentUser.setVegan(switchVegan.isChecked());
-        currentUser.setGlutenFree(switchGlutenFree.isChecked());
-        currentUser.setDairyFree(switchDairyFree.isChecked());
-        viewModel.updateUser(currentUser);
-        Toast.makeText(getContext(), "Profile updated successfully!", Toast.LENGTH_SHORT).show();
+    // --- 5. Add this new method to show the date range selection dialog ---
+    private void showDateRangeDialog() {
+        final String[] dateRanges = {"Last 7 Days", "Last 30 Days", "All Time"};
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Select Date Range")
+                .setItems(dateRanges, (dialog, which) -> {
+                    String selectedRange = dateRanges[which];
+                    viewModel.prepareCsvData(selectedRange);
+                    Toast.makeText(getContext(), "Preparing data...", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
+
+    private void populateUI(User user) { /* ... remains the same ... */ }
+    private void saveProfileChanges() { /* ... remains the same ... */ }
 }

@@ -34,6 +34,7 @@ public interface FoodLogDao {
     @Query("SELECT COUNT(*) FROM food_log_table WHERE userEmail = :userEmail")
     int getLogCountForUser(String userEmail);
 
-
+    @Query("SELECT * FROM food_log_table WHERE userEmail = :userEmail AND date BETWEEN :startDate AND :endDate ORDER BY date DESC")
+    List<FoodLog> getLogsForExport(String userEmail, long startDate, long endDate);
 
 }

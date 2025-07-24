@@ -64,4 +64,17 @@ public class FoodLogRepository {
     public LiveData<List<Achievement>> getAllAchievements() {
         return achievementDao.getAllAchievements();
     }
+    public List<FoodLog> getLogsForExport(String userEmail, long startDate, long endDate) {
+        // 这是一个同步调用，必须在后台线程执行
+        return foodLogDao.getLogsForExport(userEmail, startDate, endDate);
+    }
+
+    public User findUserByEmailOnce(String email) {
+        return userDao.findUserByEmailOnce(email);
+    }
+
+    public void insertUser(User user) {
+        // We will now handle threading in the ViewModel, but for consistency with other DAOs
+        userDao.insert(user);
+    }
 }

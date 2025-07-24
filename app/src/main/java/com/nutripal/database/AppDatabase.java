@@ -22,7 +22,7 @@ import java.util.concurrent.ExecutorService; // 3. Import these
 import java.util.concurrent.Executors;
 
 // Increment the version number again for the schema change in the next step
-@Database(entities = {User.class, FoodLog.class, WaterLog.class, Achievement.class, UserAchievement.class}, version = 8, exportSchema = false)
+@Database(entities = {User.class, FoodLog.class, WaterLog.class, Achievement.class, UserAchievement.class}, version = 9, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     public abstract UserDao userDao();
