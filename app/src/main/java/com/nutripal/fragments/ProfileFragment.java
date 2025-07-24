@@ -138,6 +138,26 @@ public class ProfileFragment extends Fragment {
                 .show();
     }
 
-    private void populateUI(User user) { /* ... remains the same ... */ }
+    private void populateUI(User user) {
+        if (user == null) {
+            // 如果 user 对象为空，最好在这里处理一下，防止后续代码出错
+            Toast.makeText(getContext(), "User data not found.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 将用户数据设置到 EditText 控件上
+        etName.setText(user.getName());
+        etGender.setText(user.getGender());
+        // 对于数字类型，必须转换为字符串再设置
+        etAge.setText(String.valueOf(user.getAge()));
+        etHeight.setText(String.valueOf(user.getHeight()));
+        etWeight.setText(String.valueOf(user.getWeight()));
+
+        // 设置饮食偏好开关（Switch）的状态
+        switchVegetarian.setChecked(user.isVegetarian());
+        switchVegan.setChecked(user.isVegan());
+        switchGlutenFree.setChecked(user.isGlutenFree());
+        switchDairyFree.setChecked(user.isDairyFree());
+    }
     private void saveProfileChanges() { /* ... remains the same ... */ }
 }
