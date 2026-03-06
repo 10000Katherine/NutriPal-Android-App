@@ -12,6 +12,7 @@ import com.nutripal.models.Achievement;
 import com.nutripal.models.FoodLog;
 import com.nutripal.models.User;
 import com.nutripal.repositories.FoodLogRepository;
+import com.nutripal.utils.CloudSyncManager;
 import com.nutripal.utils.PreferenceManager;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -28,15 +29,18 @@ public class ProfileViewModel extends AndroidViewModel {
     private final FoodLogRepository repository;
     private final ExecutorService executorService;
     private final PreferenceManager preferenceManager;
+    private final CloudSyncManager cloudSyncManager;
 
     // LiveData for the CSV export feature
     private final MutableLiveData<String> csvContent = new MutableLiveData<>();
+    private final MutableLiveData<String> cloudSyncStatus = new MutableLiveData<>();
 
     public ProfileViewModel(@NonNull Application application) {
         super(application);
         repository = new FoodLogRepository(application);
         executorService = Executors.newSingleThreadExecutor();
         preferenceManager = new PreferenceManager(application);
+        cloudSyncManager = new CloudSyncManager();
     }
 
     // --- Getters for UI ---
@@ -59,6 +63,10 @@ public class ProfileViewModel extends AndroidViewModel {
 
     public LiveData<String> getCsvContent() {
         return csvContent;
+    }
+
+    public LiveData<String> getCloudSyncStatus() {
+        return cloudSyncStatus;
     }
 
 
@@ -118,6 +126,37 @@ public class ProfileViewModel extends AndroidViewModel {
     public void onCsvDataReady() {
         // Reset the event so the save dialog is not triggered again on screen rotation
         // The actual content is still needed for writeDataToUri
+    }
+
+    public void syncCurrentUserAndLogsToCloud() {
+        executorService.execute(() -> {
+            String userEmail = preferenceManager.getLoggedInUserEmail();
+            if (userEmail == null || userEmail.isEmpty()) {
+                cloudSyncStatus.postValue("Please login first.");
+                return;
+            }
+
+            User user = repository.findUserByEmailOnce(userEmail);
+            List<FoodLog> logs = repository.getLogsForExport(userEmail, 0L, System.currentTimeMillis());
+
+            cloudSyncManager.syncUserAndLogs(
+                    getApplication(),
+                    userEmail,
+                    user,
+                    logs,
+                    new CloudSyncManager.SyncCallback() {
+                        @Override
+                        public void onSuccess(String message) {
+                            cloudSyncStatus.postValue(message + " Synced logs: " + logs.size());
+                        }
+
+                        @Override
+                        public void onFailure(String message) {
+                            cloudSyncStatus.postValue(message);
+                        }
+                    }
+            );
+        });
     }
 
     private String createCsvContent(List<FoodLog> logs) {

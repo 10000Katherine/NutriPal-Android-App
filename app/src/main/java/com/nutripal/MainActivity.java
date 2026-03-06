@@ -1,13 +1,21 @@
 package com.nutripal;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -35,5 +43,24 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(toolbar, navController, appBarConfiguration);
 
         NavigationUI.setupWithNavController(bottomNav, navController);
+
+        requestNotificationPermissionIfNeeded();
+    }
+
+    private void requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return;
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                == PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+
+        ActivityCompat.requestPermissions(
+                this,
+                new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                2001
+        );
     }
 }

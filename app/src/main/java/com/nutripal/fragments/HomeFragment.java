@@ -1,5 +1,13 @@
 package com.nutripal.fragments;
 
+import android.Manifest;
+import android.content.ActivityNotFoundException;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,9 +16,12 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -38,6 +49,16 @@ public class HomeFragment extends Fragment {
     private TextView suggestionTitleText;
     private RecyclerView suggestionRecyclerView;
     private FoodSuggestionAdapter suggestionAdapter;
+
+    private final ActivityResultLauncher<String> locationPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    openNearbyHealthyFoodInMap();
+                } else {
+                    Toast.makeText(getContext(), "Location permission denied. Opening generic nearby search.", Toast.LENGTH_SHORT).show();
+                    openMapWithQuery("geo:0,0?q=healthy+restaurant+near+me");
+                }
+            });
 
 
     @Override
@@ -87,6 +108,9 @@ public class HomeFragment extends Fragment {
             Toast.makeText(getContext(), "Added 250ml of water!", Toast.LENGTH_SHORT).show();
         });
 
+        Button findNearbyButton = view.findViewById(R.id.button_find_healthy_nearby);
+        findNearbyButton.setOnClickListener(v -> openNearbyHealthyFoodInMap());
+
         // --- Initialize New Views ---
         suggestionCard = view.findViewById(R.id.suggestion_card);
         suggestionTitleText = view.findViewById(R.id.suggestion_title_text);
@@ -96,6 +120,79 @@ public class HomeFragment extends Fragment {
         suggestionAdapter = new FoodSuggestionAdapter();
         suggestionRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         suggestionRecyclerView.setAdapter(suggestionAdapter);
+    }
+
+    private void openNearbyHealthyFoodInMap() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
+            return;
+        }
+
+        String queryUri = buildNearbyQueryUri();
+        openMapWithQuery(queryUri);
+    }
+
+    private String buildNearbyQueryUri() {
+        LocationManager locationManager = (LocationManager) requireContext().getSystemService(Context.LOCATION_SERVICE);
+        if (locationManager == null) {
+            return "geo:0,0?q=healthy+restaurant+near+me";
+        }
+
+        try {
+            Location bestLocation = null;
+            for (String provider : locationManager.getProviders(true)) {
+                Location location = locationManager.getLastKnownLocation(provider);
+                if (location == null) {
+                    continue;
+                }
+                if (bestLocation == null || location.getAccuracy() < bestLocation.getAccuracy()) {
+                    bestLocation = location;
+                }
+            }
+
+            if (bestLocation != null) {
+                return "geo:" + bestLocation.getLatitude() + "," + bestLocation.getLongitude() + "?q=healthy+restaurant";
+            }
+        } catch (SecurityException ignored) {
+            return "geo:0,0?q=healthy+restaurant+near+me";
+        }
+
+        return "geo:0,0?q=healthy+restaurant+near+me";
+    }
+
+    private void openMapWithQuery(String queryUri) {
+        Intent mapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(queryUri));
+        mapIntent.setPackage("com.google.android.apps.maps");
+
+        try {
+            startActivity(mapIntent);
+            return;
+        } catch (ActivityNotFoundException | SecurityException ignored) {
+        }
+
+        Intent fallbackIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(queryUri));
+        try {
+            startActivity(fallbackIntent);
+            return;
+        } catch (ActivityNotFoundException | SecurityException ignored) {
+        }
+
+        String webQuery = "healthy restaurant near me";
+        int queryIndex = queryUri.indexOf("q=");
+        if (queryIndex >= 0 && queryIndex + 2 < queryUri.length()) {
+            webQuery = queryUri.substring(queryIndex + 2).replace('+', ' ');
+        }
+
+        String webUrl = "https://www.google.com/maps/search/?api=1&query=" + Uri.encode(webQuery);
+        Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(webUrl));
+        try {
+            startActivity(webIntent);
+            return;
+        } catch (ActivityNotFoundException | SecurityException ignored) {
+        }
+
+        Toast.makeText(getContext(), "No map application available.", Toast.LENGTH_SHORT).show();
     }
 
     private void updateUI(HomeViewModel.HomeScreenData data) {

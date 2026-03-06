@@ -26,6 +26,7 @@ import com.nutripal.R;
 import com.nutripal.adapters.AchievementAdapter;
 import com.nutripal.models.User;
 import com.nutripal.utils.PreferenceManager;
+import com.nutripal.utils.ReminderScheduler;
 import com.nutripal.viewmodels.ProfileViewModel;
 
 public class ProfileFragment extends Fragment {
@@ -33,7 +34,7 @@ public class ProfileFragment extends Fragment {
     private ProfileViewModel viewModel;
     private PreferenceManager preferenceManager;
     private EditText etName, etAge, etGender, etHeight, etWeight;
-    private Button btnSave, btnExport; // 1. Add export button variable
+    private Button btnSave, btnExport, btnCloudSync, btnEnableReminders;
     private LiveData<User> userLiveData;
     private User currentUser;
     private SwitchMaterial switchVegetarian, switchVegan, switchGlutenFree, switchDairyFree;
@@ -98,8 +99,27 @@ public class ProfileFragment extends Fragment {
             }
         });
 
+        viewModel.getCloudSyncStatus().observe(getViewLifecycleOwner(), status -> {
+            if (status != null && !status.isEmpty()) {
+                Toast.makeText(getContext(), status, Toast.LENGTH_LONG).show();
+            }
+        });
+
         btnSave.setOnClickListener(v -> saveProfileChanges());
         btnExport.setOnClickListener(v -> showDateRangeDialog()); // Set listener for new button
+        btnCloudSync.setOnClickListener(v -> {
+            Toast.makeText(getContext(), "Syncing to cloud...", Toast.LENGTH_SHORT).show();
+            viewModel.syncCurrentUserAndLogsToCloud();
+        });
+        btnEnableReminders.setOnClickListener(v -> {
+            ReminderScheduler.scheduleDefaultReminders(requireContext());
+            ReminderScheduler.sendTestReminderNow(requireContext());
+            Toast.makeText(
+                    getContext(),
+                    "Daily reminders enabled: " + ReminderScheduler.DEFAULT_REMINDER_SCHEDULE,
+                    Toast.LENGTH_LONG
+            ).show();
+        });
     }
 
     private void initViews(View view) {
@@ -122,6 +142,8 @@ public class ProfileFragment extends Fragment {
 
         // Find the new export button
         btnExport = view.findViewById(R.id.button_export_data);
+        btnCloudSync = view.findViewById(R.id.button_cloud_sync);
+        btnEnableReminders = view.findViewById(R.id.button_enable_reminders);
     }
 
     // --- 5. Add this new method to show the date range selection dialog ---
