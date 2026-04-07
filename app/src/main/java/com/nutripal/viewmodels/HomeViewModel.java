@@ -29,6 +29,7 @@ public class HomeViewModel extends AndroidViewModel {
     private final LiveData<Integer> todaysWaterIntake;
     private final MediatorLiveData<HomeScreenData> homeScreenData = new MediatorLiveData<>();
     private final ExecutorService executorService;
+    private final PreferenceManager preferenceManager;
 
     // --- 4. Add LiveData for our suggestions ---
     private final MutableLiveData<SuggestionData> suggestionData = new MutableLiveData<>();
@@ -38,7 +39,7 @@ public class HomeViewModel extends AndroidViewModel {
         super(application);
         repository = new FoodLogRepository(application);
         executorService = Executors.newSingleThreadExecutor();
-        PreferenceManager preferenceManager = new PreferenceManager(application);
+        preferenceManager = new PreferenceManager(application);
         String userEmail = preferenceManager.getLoggedInUserEmail();
 
         if (userEmail != null && !userEmail.isEmpty()) {
@@ -73,13 +74,10 @@ public class HomeViewModel extends AndroidViewModel {
         double carbsConsumed = logs.stream().mapToDouble(FoodLog::getCarbs).sum();
         double fatConsumed = logs.stream().mapToDouble(FoodLog::getFat).sum();
 
-        double bmr = (user.getGender() != null && user.getGender().equalsIgnoreCase("Male")) ?
-                (10 * user.getWeight() + 6.25 * user.getHeight() - 5 * user.getAge() + 5) :
-                (10 * user.getWeight() + 6.25 * user.getHeight() - 5 * user.getAge() - 161);
-        double calorieGoal = bmr * 1.2;
+        int calorieGoal = resolveCalorieGoal(user);
 
         homeScreenData.setValue(new HomeScreenData(
-                (int) caloriesConsumed, (int) calorieGoal,
+                (int) caloriesConsumed, calorieGoal,
                 (int) proteinConsumed, (int) carbsConsumed, (int) fatConsumed,
                 waterConsumed
         ));
@@ -104,6 +102,30 @@ public class HomeViewModel extends AndroidViewModel {
 
     public LiveData<HomeScreenData> getHomeScreenData() { return homeScreenData; }
     public LiveData<SuggestionData> getSuggestionData() { return suggestionData; } // Getter for new LiveData
+
+    private int resolveCalorieGoal(User user) {
+        double bmr = (user.getGender() != null && user.getGender().equalsIgnoreCase("Male"))
+                ? (10 * user.getWeight() + 6.25 * user.getHeight() - 5 * user.getAge() + 5)
+                : (10 * user.getWeight() + 6.25 * user.getHeight() - 5 * user.getAge() - 161);
+
+        String goalType = preferenceManager.getGoalType();
+        if (goalType == null) {
+            goalType = "maintain";
+        }
+
+        switch (goalType) {
+            case "loss":
+                return Math.max(1200, (int) Math.round(bmr * 0.85));
+            case "gain":
+                return Math.max(1200, (int) Math.round(bmr * 1.15));
+            case "custom":
+                int customCalorieGoal = preferenceManager.getCustomCalorieGoal();
+                return customCalorieGoal > 0 ? customCalorieGoal : Math.max(1200, (int) Math.round(bmr));
+            case "maintain":
+            default:
+                return Math.max(1200, (int) Math.round(bmr));
+        }
+    }
 
     public void addWater(int amountMl) {
         executorService.execute(() -> {

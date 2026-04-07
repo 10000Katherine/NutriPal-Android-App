@@ -5,12 +5,13 @@ import android.util.Patterns;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider; // Import this
 import com.nutripal.R;
+import com.nutripal.utils.AppAppearanceManager;
+import com.nutripal.utils.PreferenceManager;
 import com.nutripal.viewmodels.RegisterViewModel; // Import the new ViewModel
 
-public class RegisterActivity extends AppCompatActivity {
+public class RegisterActivity extends BaseActivity {
 
     private EditText etEmail, etPassword, etName, etAge, etGender, etHeight, etWeight;
     private Button btnRegister;
@@ -18,6 +19,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        AppAppearanceManager.applyAppearance(this, new PreferenceManager(this));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 

@@ -2,6 +2,13 @@ plugins {
     id 'com.android.application'
 }
 
+def googleServicesConfig = file("google-services.json")
+if (googleServicesConfig.exists()) {
+    apply plugin: 'com.google.gms.google-services'
+} else {
+    logger.lifecycle("google-services.json not found in app/. Firebase build plugin is skipped for now.")
+}
+
 android {
     namespace 'com.nutripal'
     compileSdk 34
@@ -89,5 +96,6 @@ dependencies {
 
     implementation platform('com.google.firebase:firebase-bom:33.7.0')
     implementation 'com.google.firebase:firebase-firestore'
+    implementation 'com.google.firebase:firebase-auth'
 
 }

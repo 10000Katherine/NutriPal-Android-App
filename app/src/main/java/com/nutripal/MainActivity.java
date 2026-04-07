@@ -5,7 +5,6 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -15,19 +14,40 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.nutripal.activities.BaseActivity;
+import com.nutripal.utils.AppAppearanceManager;
+import com.nutripal.utils.PreferenceManager;
+
+import android.content.res.ColorStateList;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        PreferenceManager preferenceManager = new PreferenceManager(this);
+        AppAppearanceManager.applyAppearance(this, preferenceManager);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
         Toolbar toolbar = findViewById(R.id.toolbar);
+
+        int primaryColor = AppAppearanceManager.resolvePrimaryColor(this, preferenceManager);
+        toolbar.setBackgroundColor(primaryColor);
+        int[][] states = new int[][]{
+                new int[]{android.R.attr.state_checked},
+                new int[]{}
+        };
+        int[] colors = new int[]{
+                primaryColor,
+                ContextCompat.getColor(this, R.color.gray_dark)
+        };
+        ColorStateList bottomNavColors = new ColorStateList(states, colors);
+        bottomNav.setItemIconTintList(bottomNavColors);
+        bottomNav.setItemTextColor(bottomNavColors);
 
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.nav_host_fragment);

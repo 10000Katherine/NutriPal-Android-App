@@ -1,10 +1,15 @@
 package com.nutripal.fragments;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -27,6 +32,8 @@ public class ProgressFragment extends Fragment {
 
     private ProgressViewModel viewModel;
     private BarChart barChart;
+    private TextView textWeeklySummary;
+    private String latestWeeklySummary = "";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -39,6 +46,10 @@ public class ProgressFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         barChart = view.findViewById(R.id.chart);
+        textWeeklySummary = view.findViewById(R.id.text_weekly_summary);
+        Button shareWeeklySummaryButton = view.findViewById(R.id.button_share_weekly_summary);
+
+        shareWeeklySummaryButton.setOnClickListener(v -> shareWeeklySummary());
 
         viewModel.getChartData().observe(getViewLifecycleOwner(), chartData -> {
             if (chartData != null) {
@@ -50,6 +61,29 @@ public class ProgressFragment extends Fragment {
                 barChart.invalidate();
             }
         });
+
+        viewModel.getWeeklySummary().observe(getViewLifecycleOwner(), summary -> {
+            if (summary == null || summary.trim().isEmpty()) {
+                latestWeeklySummary = "No weekly summary available yet.";
+            } else {
+                latestWeeklySummary = summary;
+            }
+            textWeeklySummary.setText(latestWeeklySummary);
+        });
+    }
+
+    private void shareWeeklySummary() {
+        if (latestWeeklySummary == null || latestWeeklySummary.trim().isEmpty()) {
+            Toast.makeText(getContext(), "No weekly summary to share yet.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "My NutriPal Weekly Summary");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, latestWeeklySummary);
+
+        startActivity(Intent.createChooser(shareIntent, "Share weekly summary with"));
     }
 
     private void setupChart(int calorieGoal, List<String> labels) {

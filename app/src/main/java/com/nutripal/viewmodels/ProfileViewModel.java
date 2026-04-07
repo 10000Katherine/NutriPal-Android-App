@@ -34,6 +34,7 @@ public class ProfileViewModel extends AndroidViewModel {
     // LiveData for the CSV export feature
     private final MutableLiveData<String> csvContent = new MutableLiveData<>();
     private final MutableLiveData<String> cloudSyncStatus = new MutableLiveData<>();
+    private final MutableLiveData<String> lastCloudSyncInfo = new MutableLiveData<>();
 
     public ProfileViewModel(@NonNull Application application) {
         super(application);
@@ -41,6 +42,7 @@ public class ProfileViewModel extends AndroidViewModel {
         executorService = Executors.newSingleThreadExecutor();
         preferenceManager = new PreferenceManager(application);
         cloudSyncManager = new CloudSyncManager();
+        refreshLastCloudSyncInfo();
     }
 
     // --- Getters for UI ---
@@ -67,6 +69,10 @@ public class ProfileViewModel extends AndroidViewModel {
 
     public LiveData<String> getCloudSyncStatus() {
         return cloudSyncStatus;
+    }
+
+    public LiveData<String> getLastCloudSyncInfo() {
+        return lastCloudSyncInfo;
     }
 
 
@@ -136,6 +142,10 @@ public class ProfileViewModel extends AndroidViewModel {
                 return;
             }
 
+            long attemptTime = System.currentTimeMillis();
+            preferenceManager.setLastCloudSyncAttemptTime(attemptTime);
+            refreshLastCloudSyncInfo();
+
             User user = repository.findUserByEmailOnce(userEmail);
             List<FoodLog> logs = repository.getLogsForExport(userEmail, 0L, System.currentTimeMillis());
 
@@ -147,11 +157,16 @@ public class ProfileViewModel extends AndroidViewModel {
                     new CloudSyncManager.SyncCallback() {
                         @Override
                         public void onSuccess(String message) {
+                            preferenceManager.setLastCloudSyncTime(System.currentTimeMillis());
+                            preferenceManager.setLastCloudSyncSuccess(true);
+                            refreshLastCloudSyncInfo();
                             cloudSyncStatus.postValue(message + " Synced logs: " + logs.size());
                         }
 
                         @Override
                         public void onFailure(String message) {
+                            preferenceManager.setLastCloudSyncSuccess(false);
+                            refreshLastCloudSyncInfo();
                             cloudSyncStatus.postValue(message);
                         }
                     }
@@ -175,5 +190,25 @@ public class ProfileViewModel extends AndroidViewModel {
             sb.append(String.format(Locale.US, "%.1f", log.getFat())).append("\n");
         }
         return sb.toString();
+    }
+
+    private void refreshLastCloudSyncInfo() {
+        long lastAttemptTime = preferenceManager.getLastCloudSyncAttemptTime();
+        long lastSyncTime = preferenceManager.getLastCloudSyncTime();
+        if (lastAttemptTime <= 0L && lastSyncTime <= 0L) {
+            lastCloudSyncInfo.postValue("Last cloud sync: Never");
+            return;
+        }
+
+        SimpleDateFormat displayFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US);
+
+        if (lastSyncTime > 0L && preferenceManager.wasLastCloudSyncSuccessful()) {
+            String formattedSuccessTime = displayFormat.format(new Date(lastSyncTime));
+            lastCloudSyncInfo.postValue("Last cloud sync: Success at " + formattedSuccessTime);
+            return;
+        }
+
+        String formattedAttemptTime = displayFormat.format(new Date(lastAttemptTime));
+        lastCloudSyncInfo.postValue("Last cloud sync: Attempted at " + formattedAttemptTime + " (not synced)");
     }
 }

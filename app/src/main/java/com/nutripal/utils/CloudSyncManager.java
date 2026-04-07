@@ -16,6 +16,8 @@ import java.util.Map;
 
 public class CloudSyncManager {
 
+    private static final int MAX_RETRY_ATTEMPTS = 2;
+
     public interface SyncCallback {
         void onSuccess(String message);
 
@@ -27,6 +29,15 @@ public class CloudSyncManager {
                                 User user,
                                 @NonNull List<FoodLog> logs,
                                 @NonNull SyncCallback callback) {
+        syncUserAndLogsWithRetry(context, userEmail, user, logs, callback, 0);
+    }
+
+    private void syncUserAndLogsWithRetry(@NonNull Context context,
+                                          @NonNull String userEmail,
+                                          User user,
+                                          @NonNull List<FoodLog> logs,
+                                          @NonNull SyncCallback callback,
+                                          int attempt) {
         try {
             FirebaseApp app = FirebaseApp.initializeApp(context);
             if (app == null) {
@@ -84,11 +95,42 @@ public class CloudSyncManager {
 
                         batch.commit()
                                 .addOnSuccessListener(result -> callback.onSuccess("Cloud sync completed."))
-                                .addOnFailureListener(e -> callback.onFailure("Cloud sync failed: " + e.getMessage()));
+                                .addOnFailureListener(e -> retryOrFail(
+                                        context,
+                                        userEmail,
+                                        user,
+                                        logs,
+                                        callback,
+                                        attempt,
+                                        "Cloud sync failed"
+                                ));
                     })
-                    .addOnFailureListener(e -> callback.onFailure("User sync failed: " + e.getMessage()));
+                    .addOnFailureListener(e -> retryOrFail(
+                            context,
+                            userEmail,
+                            user,
+                            logs,
+                            callback,
+                            attempt,
+                            "User sync failed"
+                    ));
         } catch (Exception e) {
-            callback.onFailure("Cloud sync unavailable: " + e.getMessage());
+            retryOrFail(context, userEmail, user, logs, callback, attempt, "Cloud sync unavailable");
         }
+    }
+
+    private void retryOrFail(@NonNull Context context,
+                             @NonNull String userEmail,
+                             User user,
+                             @NonNull List<FoodLog> logs,
+                             @NonNull SyncCallback callback,
+                             int attempt,
+                             @NonNull String errorPrefix) {
+        if (attempt < MAX_RETRY_ATTEMPTS) {
+            syncUserAndLogsWithRetry(context, userEmail, user, logs, callback, attempt + 1);
+            return;
+        }
+
+        callback.onFailure(errorPrefix + " after retries. Please check network/Firebase config.");
     }
 }

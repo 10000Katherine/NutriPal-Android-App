@@ -25,6 +25,9 @@ import java.util.concurrent.Executors;
 @Database(entities = {User.class, FoodLog.class, WaterLog.class, Achievement.class, UserAchievement.class}, version = 9, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
+    public static final String EVALUATOR_TEST_EMAIL = "nutripal.tester@local.dev";
+    public static final String EVALUATOR_TEST_PASSWORD = "NutriPal123!";
+
     public abstract UserDao userDao();
     public abstract FoodLogDao foodLogDao();
     public abstract WaterLogDao waterLogDao();
@@ -55,11 +58,42 @@ public abstract class AppDatabase extends RoomDatabase {
             super.onCreate(db);
             databaseWriteExecutor.execute(() -> {
                 AchievementDao dao = INSTANCE.achievementDao();
+                UserDao userDao = INSTANCE.userDao();
                 // Pre-populate the achievements table
                 dao.insertAchievement(new Achievement("FIRST_LOG", "First Log", "Log your first food item.", R.drawable.ic_launcher_foreground));
                 dao.insertAchievement(new Achievement("7_DAY_STREAK", "7-Day Streak", "Log food for 7 days in a row.", R.drawable.ic_launcher_foreground));
                 dao.insertAchievement(new Achievement("HYDRATION_HERO", "Hydration Hero", "Meet your daily water goal.", R.drawable.ic_launcher_foreground));
+
+                ensureEvaluatorTestAccount(userDao);
+            });
+        }
+
+        @Override
+        public void onOpen(@NonNull SupportSQLiteDatabase db) {
+            super.onOpen(db);
+            databaseWriteExecutor.execute(() -> {
+                UserDao userDao = INSTANCE.userDao();
+                ensureEvaluatorTestAccount(userDao);
             });
         }
     };
+
+    private static void ensureEvaluatorTestAccount(@NonNull UserDao userDao) {
+        User existingUser = userDao.findUserByEmailOnce(EVALUATOR_TEST_EMAIL);
+        if (existingUser != null) {
+            return;
+        }
+
+        User evaluatorUser = new User(
+                EVALUATOR_TEST_EMAIL,
+                EVALUATOR_TEST_PASSWORD,
+                "NutriPal Evaluator",
+                "Prefer not to say",
+                170,
+                70,
+                25,
+                "Moderately Active"
+        );
+        userDao.insert(evaluatorUser);
+    }
 }
